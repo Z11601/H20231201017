@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>百度贴吧 - 创建词条</title>
+  <link rel="icon" href="/favicon.svg">
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    /* 导航栏样式 */
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007aff;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: #666;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+      color: #007aff;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background-color: #007aff;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0056cc;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: #007aff;
+      border: 1px solid #007aff;
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(0, 122, 255, 0.1);
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+    
+    /* 主内容样式 */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .breadcrumb {
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .breadcrumb a {
+      color: #007aff;
+      text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumb span {
+      margin: 0 5px;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+    
+    /* 创建词条表单卡片 */
+    .create-term-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+    
+    .form-section {
+      margin-bottom: 25px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+      border-color: #007aff;
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      background-color: white;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-select:focus {
+      border-color: #007aff;
+    }
+    
+    .form-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-textarea:focus {
+      border-color: #007aff;
+    }
+    
+    .form-help {
+      font-size: 13px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .form-error {
+      font-size: 13px;
+      color: #d32f2f;
+      margin-top: 5px;
+    }
+    
+    /* 编辑器工具栏 */
+    .editor-toolbar {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .toolbar-btn {
+      padding: 6px 10px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      transition: all 0.3s ease;
+    }
+    
+    .toolbar-btn:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .toolbar-btn.active {
+      background-color: #e3f2fd;
+      border-color: #007aff;
+      color: #007aff;
+    }
+    
+    /* 内容编辑器 */
+    .content-editor {
+      border: 1px solid #ddd;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .editor-content {
+      width: 100%;
+      min-height: 400px;
+      padding: 15px;
+      border: none;
+      resize: vertical;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .editor-preview {
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      min-height: 200px;
+      background-color: #f8f9fa;
+      display: none;
+    }
+    
+    /* 标签输入 */
+    .tags-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 45px;
+      align-items: center;
+    }
+    
+    .tag {
+      background-color: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .tag-remove {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .tag-input {
+      border: none;
+      flex: 1;
+      min-width: 100px;
+      outline: none;
+      font-size: 14px;
+    }
+    
+    /* 提交区域 */
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    /* 词条创建指南 */
+    .term-guide {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    .guide-title {
+      font-size: 18px;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    
+    .guide-content {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.6;
+    }
+    
+    .guide-content h3 {
+      font-size: 16px;
+      margin-top: 15px;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .guide-content ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    
+    .guide-content li {
+      margin-bottom: 5px;
+    }
+    
+    /* 页脚样式 */
+    .footer {
+      background-color: white;
+      padding: 30px 0;
+      margin-top: 60px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .navbar-container {
+        padding: 0 15px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .container {
+        padding: 15px;
+      }
+      
+      .create-term-card {
+        padding: 20px;
+      }
+      
+      .form-actions {
+        flex-wrap: wrap;
+      }
+      
+      .btn {
+        flex: 1;
+        min-width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="logo">百度贴吧</a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">首页</a>
+        <a href="term-list.html" class="nav-link active">词条</a>
+        <a href="#" class="nav-link">发现</a>
+      </nav>
+      <div class="user-actions">
+        <a href="login.html" class="btn btn-outline">登录</a>
+        <a href="register.html" class="btn btn-primary">注册</a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container">
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>&gt;</span>
+      <a href="term-list.html">词条列表</a>
+      <span>&gt;</span>
+      <span>创建词条</span>
+    </div>
+    
+    <h1 class="page-title">创建词条</h1>
+    
+    <!-- 创建词条表单 -->
+    <div class="create-term-card">
+      <form id="create-term-form">
+        <!-- 词条标题 -->
+        <div class="form-section">
+          <label class="form-label" for="term-title">词条标题 <span style="color: #d32f2f;">*</span></label>
+          <input type="text" id="term-title" class="form-input" placeholder="请输入词条标题（2-50个字）" maxlength="50" required>
+          <div class="form-help">请使用简洁明了的词汇或短语作为词条标题，确保准确反映词条主题。</div>
+        </div>
+        
+        <!-- 词条分类 -->
+        <div class="form-section">
+          <label class="form-label" for="term-category">词条分类 <span style="color: #d32f2f;">*</span></label>
+          <select id="term-category" class="form-select" required>
+            <option value="">请选择分类</option>
+            <option value="tech">科技</option>
+            <option value="game">游戏</option>
+            <option value="life">生活</option>
+            <option value="culture">文化</option>
+            <option value="entertainment">娱乐</option>
+            <option value="education">教育</option>
+            <option value="sports">体育</option>
+            <option value="health">健康</option>
+            <option value="finance">金融</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        
+        <!-- 词条摘要 -->
+        <div class="form-section">
+          <label class="form-label" for="term-summary">词条摘要 <span style="color: #d32f2f;">*</span></label>
+          <textarea id="term-summary" class="form-textarea" placeholder="简要描述词条的核心内容（50-200字）" maxlength="200" required></textarea>
+          <div class="form-help">词条摘要应简明扼要地概括词条的核心内容，帮助用户快速了解词条主题。</div>
+        </div>
+        
+        <!-- 词条内容 -->
+        <div class="form-section">
+          <label class="form-label" for="term-content">词条内容 <span style="color: #d32f2f;">*</span></label>
+          
+          <!-- 编辑器工具栏 -->
+          <div class="editor-toolbar">
+            <button type="button" class="toolbar-btn" title="标题1">H1</button>
+            <button type="button" class="toolbar-btn" title="标题2">H2</button>
+            <button type="button" class="toolbar-btn" title="标题3">H3</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="加粗">B</button>
+            <button type="button" class="toolbar-btn" title="斜体">I</button>
+            <button type="button" class="toolbar-btn" title="下划线">U</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="无序列表">• 列表</button>
+            <button type="button" class="toolbar-btn" title="有序列表">1. 列表</button>
+            <button type="button" class="toolbar-btn" title="引用">" 引用</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="插入链接">🔗</button>
+            <button type="button" class="toolbar-btn" title="插入图片">🖼️</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="代码块">{ }</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" id="preview-btn" class="toolbar-btn" title="预览">预览</button>
+          </div>
+          
+          <!-- 内容编辑区 -->
+          <div class="content-editor">
+            <textarea id="term-content" class="editor-content" placeholder="请输入词条详细内容，建议包含概述、背景、特点、应用等方面。支持基本的Markdown语法。" required></textarea>
+            <div id="editor-preview" class="editor-preview">预览区域</div>
+          </div>
+          <div class="form-help">词条内容应详细、准确、客观，建议按照一定的逻辑结构组织内容，可使用标题、列表等排版元素增强可读性。</div>
+        </div>
+        
+        <!-- 参考资料 -->
+        <div class="form-section">
+          <label class="form-label" for="term-references">参考资料</label>
+          <textarea id="term-references" class="form-textarea" placeholder="请列出词条内容的参考资料来源（每个来源占一行）"></textarea>
+          <div class="form-help">为保证词条内容的准确性和权威性，建议提供可靠的参考资料来源，如学术论文、权威网站、书籍等。</div>
+        </div>
+        
+        <!-- 词条标签 -->
+        <div class="form-section">
+          <label class="form-label" for="term-tags">词条标签</label>
+          <div class="tags-input">
+            <div class="tag">人工智能 <span class="tag-remove">×</span></div>
+            <div class="tag">科技 <span class="tag-remove">×</span></div>
+            <input type="text" class="tag-input" placeholder="添加标签（按回车确认）" id="tag-input">
+          </div>
+          <div class="form-help">添加相关标签，有助于用户更准确地找到您创建的词条（最多添加5个标签）。</div>
+        </div>
+        
+        <!-- 提交按钮 -->
+        <div class="form-actions">
+          <a href="term-list.html" class="btn btn-secondary">取消</a>
+          <button type="submit" class="btn btn-primary">创建词条</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- 词条创建指南 -->
+    <div class="term-guide">
+      <h2 class="guide-title">词条创建指南</h2>
+      <div class="guide-content">
+        <p>为了确保词条质量，请遵守以下规范：</p>
+        
+        <h3>词条标题</h3>
+        <ul>
+          <li>使用标准、通用的名称</li>
+          <li>避免使用简称、俗称、方言等不规范表述</li>
+          <li>不使用广告性、夸张性词语</li>
+        </ul>
+        
+        <h3>词条内容</h3>
+        <ul>
+          <li>内容应客观、准确、中立，避免主观评价</li>
+          <li>提供可靠的参考资料来源</li>
+          <li>按照逻辑顺序组织内容，使用标题、段落等排版元素</li>
+          <li>避免抄袭他人作品，尊重知识产权</li>
+        </ul>
+        
+        <h3>禁止内容</h3>
+        <ul>
+          <li>违反法律法规的内容</li>
+          <li>恶意攻击、侮辱他人的内容</li>
+          <li>虚假信息、误导性内容</li>
+          <li>广告、推广性质的内容</li>
+          <li>侵犯他人隐私的内容</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>© 2023 百度贴吧 版权所有</p>
+  </footer>
+  
+  <script>
+    // 简单的交互逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+      // 预览按钮点击事件
+      const previewBtn = document.getElementById('preview-btn');
+      const editorContent = document.getElementById('term-content');
+      const editorPreview = document.getElementById('editor-preview');
+      
+      if (previewBtn && editorContent && editorPreview) {
+        previewBtn.addEventListener('click', function() {
+          // 切换预览状态
+          this.classList.toggle('active');
+          
+          if (this.classList.contains('active')) {
+            // 显示预览
+            editorContent.style.display = 'none';
+            editorPreview.style.display = 'block';
+            editorPreview.innerHTML = editorContent.value
+              .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+              .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+              .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+              .replace(/\n/g, '<br>');
+            this.textContent = '编辑';
+          } else {
+            // 显示编辑
+            editorContent.style.display = 'block';
+            editorPreview.style.display = 'none';
+            this.textContent = '预览';
+          }
+        });
+      }
+      
+      // 标签功能
+      const tagInput = document.getElementById('tag-input');
+      const tagsInput = document.querySelector('.tags-input');
+      
+      if (tagInput && tagsInput) {
+        tagInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter' && this.value.trim()) {
+            e.preventDefault();
+            
+            // 检查标签数量限制
+            const existingTags = document.querySelectorAll('.tag');
+            if (existingTags.length >= 5) {
+              alert('最多添加5个标签');
+              return;
+            }
+            
+            // 创建新标签
+            const tagText = this.value.trim();
+            const tagElement = document.createElement('div');
+            tagElement.className = 'tag';
+            tagElement.innerHTML = `${tagText} <span class="tag-remove">×</span>`;
+            
+            // 添加删除标签的事件
+            const removeBtn = tagElement.querySelector('.tag-remove');
+            removeBtn.addEventListener('click', function() {
+              tagElement.remove();
+            });
+            
+            // 插入标签到输入框前
+            tagsInput.insertBefore(tagElement, this);
+            
+            // 清空输入框
+            this.value = '';
+          }
+        });
+      }
+      
+      // 删除已存在的标签
+      document.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', function() {
+          this.parentElement.remove();
+        });
+      });
+      
+      // 表单提交
+      const createForm = document.getElementById('create-term-form');
+      if (createForm) {
+        createForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // 简单的表单验证
+          const title = document.getElementById('term-title').value;
+          const category = document.getElementById('term-category').value;
+          const summary = document.getElementById('term-summary').value;
+          const content = document.getElementById('term-content').value;
+          
+          if (!title || !category || !summary || !content) {
+            alert('请填写所有必填字段');
+            return;
+          }
+          
+          // 模拟提交成功
+          alert('词条创建成功！等待审核通过后即可显示。');
+          window.location.href = 'term-list.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

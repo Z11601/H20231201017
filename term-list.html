@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>百度贴吧 - 词条列表</title>
+  <link rel="icon" href="/favicon.svg">
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    /* 导航栏样式 */
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007aff;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: #666;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+      color: #007aff;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background-color: #007aff;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0056cc;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: #007aff;
+      border: 1px solid #007aff;
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(0, 122, 255, 0.1);
+    }
+    
+    /* 主内容样式 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .page-title {
+      font-size: 28px;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .search-container {
+      display: flex;
+      gap: 10px;
+      flex: 1;
+      max-width: 600px;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .search-input:focus {
+      border-color: #007aff;
+    }
+    
+    .category-filter {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+      background-color: white;
+    }
+    
+    /* 分类标签样式 */
+    .category-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    .category-tag {
+      padding: 6px 12px;
+      border-radius: 20px;
+      background-color: white;
+      border: 1px solid #ddd;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+    }
+    
+    .category-tag:hover {
+      border-color: #007aff;
+      color: #007aff;
+    }
+    
+    .category-tag.active {
+      background-color: #007aff;
+      color: white;
+      border-color: #007aff;
+    }
+    
+    /* 词条列表样式 */
+    .term-list {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 20px;
+    }
+    
+    .term-item {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .term-item:last-child {
+      border-bottom: none;
+    }
+    
+    .term-item:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .term-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+    
+    .term-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+      text-decoration: none;
+    }
+    
+    .term-title:hover {
+      color: #007aff;
+    }
+    
+    .term-meta {
+      display: flex;
+      gap: 15px;
+      font-size: 13px;
+      color: #999;
+    }
+    
+    .term-category {
+      display: inline-block;
+      padding: 2px 8px;
+      background-color: #e3f2fd;
+      color: #1976d2;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+    
+    .term-brief {
+      color: #666;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 10px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .term-stats {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+      color: #999;
+    }
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    /* 分页样式 */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      margin-top: 30px;
+    }
+    
+    .page-item {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background-color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: #666;
+    }
+    
+    .page-item:hover:not(.disabled) {
+      border-color: #007aff;
+      color: #007aff;
+    }
+    
+    .page-item.active {
+      background-color: #007aff;
+      color: white;
+      border-color: #007aff;
+    }
+    
+    .page-item.disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    /* 页脚样式 */
+    .footer {
+      background-color: white;
+      padding: 30px 0;
+      margin-top: 60px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .navbar-container {
+        padding: 0 15px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .container {
+        padding: 15px;
+      }
+      
+      .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      
+      .search-container {
+        max-width: none;
+      }
+      
+      .term-header {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="logo">百度贴吧</a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">首页</a>
+        <a href="term-list.html" class="nav-link active">词条</a>
+        <a href="#" class="nav-link">发现</a>
+      </nav>
+      <div class="user-actions">
+        <a href="login.html" class="btn btn-outline">登录</a>
+        <a href="register.html" class="btn btn-primary">注册</a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container">
+    <h1 class="page-title">词条列表</h1>
+    
+    <!-- 搜索和创建按钮 -->
+    <div class="header-actions">
+      <div class="search-container">
+        <input type="text" class="search-input" placeholder="搜索词条...">
+        <select class="category-filter">
+          <option value="all">全部分类</option>
+          <option value="tech">科技</option>
+          <option value="game">游戏</option>
+          <option value="life">生活</option>
+          <option value="culture">文化</option>
+          <option value="entertainment">娱乐</option>
+        </select>
+        <button class="btn btn-primary">搜索</button>
+      </div>
+      <a href="term-create.html" class="btn btn-primary">创建词条</a>
+    </div>
+    
+    <!-- 分类标签 -->
+    <div class="category-tags">
+      <span class="category-tag active">全部</span>
+      <span class="category-tag">科技</span>
+      <span class="category-tag">游戏</span>
+      <span class="category-tag">生活</span>
+      <span class="category-tag">文化</span>
+      <span class="category-tag">娱乐</span>
+      <span class="category-tag">体育</span>
+      <span class="category-tag">教育</span>
+    </div>
+    
+    <!-- 词条列表 -->
+    <div class="term-list">
+      <!-- 词条项1 -->
+      <div class="term-item">
+        <div class="term-header">
+          <div>
+            <a href="term-detail.html?id=1" class="term-title">人工智能</a>
+            <span class="term-category">科技</span>
+          </div>
+          <div class="term-meta">
+            <span>更新于 2023-10-20</span>
+            <span>编辑次数: 24</span>
+          </div>
+        </div>
+        <p class="term-brief">人工智能（Artificial Intelligence，缩写为AI）是指由人制造出来的系统所表现出来的智能。通常人工智能是指通过普通计算机程序来呈现人类智能的技术。该领域的研究包括机器人、语言识别、图像识别、自然语言处理和专家系统等。</p>
+        <div class="term-stats">
+          <div class="stat-item">
+            <span>浏览</span>
+            <span>12,453</span>
+          </div>
+          <div class="stat-item">
+            <span>点赞</span>
+            <span>342</span>
+          </div>
+          <div class="stat-item">
+            <span>评论</span>
+            <span>87</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 词条项2 -->
+      <div class="term-item">
+        <div class="term-header">
+          <div>
+            <a href="term-detail.html?id=2" class="term-title">电子商务</a>
+            <span class="term-category">科技</span>
+          </div>
+          <div class="term-meta">
+            <span>更新于 2023-10-18</span>
+            <span>编辑次数: 16</span>
+          </div>
+        </div>
+        <p class="term-brief">电子商务（Electronic Commerce）是指以信息网络技术为手段，以商品交换为中心的商务活动；也可理解为在互联网、企业内部网和增值网上以电子交易方式进行交易活动和相关服务的活动，是传统商业活动各环节的电子化、网络化、信息化。</p>
+        <div class="term-stats">
+          <div class="stat-item">
+            <span>浏览</span>
+            <span>8,921</span>
+          </div>
+          <div class="stat-item">
+            <span>点赞</span>
+            <span>215</span>
+          </div>
+          <div class="stat-item">
+            <span>评论</span>
+            <span>53</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 词条项3 -->
+      <div class="term-item">
+        <div class="term-header">
+          <div>
+            <a href="term-detail.html?id=3" class="term-title">区块链</a>
+            <span class="term-category">科技</span>
+          </div>
+          <div class="term-meta">
+            <span>更新于 2023-10-15</span>
+            <span>编辑次数: 32</span>
+          </div>
+        </div>
+        <p class="term-brief">区块链（Blockchain）是分布式数据存储、点对点传输、共识机制、加密算法等计算机技术的新型应用模式。区块链本质上是一个去中心化的数据库，同时作为比特币的底层技术。区块链是一串使用密码学方法相关联产生的数据块，每一个数据块中包含了一次比特币网络交易的信息，用于验证其信息的有效性（防伪）和生成下一个区块。</p>
+        <div class="term-stats">
+          <div class="stat-item">
+            <span>浏览</span>
+            <span>7,326</span>
+          </div>
+          <div class="stat-item">
+            <span>点赞</span>
+            <span>187</span>
+          </div>
+          <div class="stat-item">
+            <span>评论</span>
+            <span>42</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 词条项4 -->
+      <div class="term-item">
+        <div class="term-header">
+          <div>
+            <a href="term-detail.html?id=4" class="term-title">元宇宙</a>
+            <span class="term-category">科技</span>
+          </div>
+          <div class="term-meta">
+            <span>更新于 2023-10-12</span>
+            <span>编辑次数: 28</span>
+          </div>
+        </div>
+        <p class="term-brief">元宇宙（Metaverse）是利用科技手段进行链接与创造的，与现实世界映射与交互的虚拟世界，具备新型社会体系的数字生活空间。元宇宙本质上是对现实世界的虚拟化、数字化过程，需要对内容生产、经济系统、用户体验以及实体世界内容等进行大量改造。</p>
+        <div class="term-stats">
+          <div class="stat-item">
+            <span>浏览</span>
+            <span>15,678</span>
+          </div>
+          <div class="stat-item">
+            <span>点赞</span>
+            <span>483</span>
+          </div>
+          <div class="stat-item">
+            <span>评论</span>
+            <span>124</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 词条项5 -->
+      <div class="term-item">
+        <div class="term-header">
+          <div>
+            <a href="term-detail.html?id=5" class="term-title">健康生活方式</a>
+            <span class="category-tag">生活</span>
+          </div>
+          <div class="term-meta">
+            <span>更新于 2023-10-10</span>
+            <span>编辑次数: 15</span>
+          </div>
+        </div>
+        <p class="term-brief">健康生活方式是指有益于健康的习惯化的行为方式，主要包括合理膳食、适量运动、戒烟限酒、心理平衡四个方面。健康的生活方式不仅可以帮助抵御传染性疾病，更是预防和控制心脑血管病、恶性肿瘤、呼吸系统疾病、糖尿病等慢性非传染性疾病的基础。</p>
+        <div class="term-stats">
+          <div class="stat-item">
+            <span>浏览</span>
+            <span>9,834</span>
+          </div>
+          <div class="stat-item">
+            <span>点赞</span>
+            <span>312</span>
+          </div>
+          <div class="stat-item">
+            <span>评论</span>
+            <span>76</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 分页 -->
+    <div class="pagination">
+      <a href="#" class="page-item disabled">上一页</a>
+      <a href="#" class="page-item active">1</a>
+      <a href="#" class="page-item">2</a>
+      <a href="#" class="page-item">3</a>
+      <a href="#" class="page-item">4</a>
+      <a href="#" class="page-item">5</a>
+      <span>...</span>
+      <a href="#" class="page-item">10</a>
+      <a href="#" class="page-item">下一页</a>
+    </div>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>© 2023 百度贴吧 版权所有</p>
+  </footer>
+  
+  <script>
+    // 简单的交互逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+      // 分类标签点击事件
+      const categoryTags = document.querySelectorAll('.category-tag');
+      categoryTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+          // 移除所有活跃状态
+          categoryTags.forEach(t => t.classList.remove('active'));
+          // 添加当前活跃状态
+          this.classList.add('active');
+        });
+      });
+      
+      // 简单的页面跳转逻辑
+      const createTermBtn = document.querySelector('.header-actions .btn-primary:last-child');
+      if (createTermBtn) {
+        createTermBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = 'term-create.html';
+        });
+      }
+    });
+  </script>
+</body>
+</html>

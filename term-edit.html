@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>百度贴吧 - 编辑词条</title>
+  <link rel="icon" href="/favicon.svg">
+  <style>
+    /* 全局样式 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    /* 导航栏样式 */
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 60px;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007aff;
+      text-decoration: none;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-link {
+      text-decoration: none;
+      color: #666;
+      transition: color 0.3s ease;
+    }
+    
+    .nav-link:hover,
+    .nav-link.active {
+      color: #007aff;
+    }
+    
+    .user-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .btn-primary {
+      background-color: #007aff;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #0056cc;
+    }
+    
+    .btn-outline {
+      background-color: transparent;
+      color: #007aff;
+      border: 1px solid #007aff;
+    }
+    
+    .btn-outline:hover {
+      background-color: rgba(0, 122, 255, 0.1);
+    }
+    
+    .btn-secondary {
+      background-color: #f5f5f5;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .btn-danger {
+      background-color: #d32f2f;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #c62828;
+    }
+    
+    /* 主内容样式 */
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .breadcrumb {
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .breadcrumb a {
+      color: #007aff;
+      text-decoration: none;
+    }
+    
+    .breadcrumb a:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumb span {
+      margin: 0 5px;
+    }
+    
+    .page-title {
+      font-size: 24px;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+    
+    /* 编辑词条表单卡片 */
+    .edit-term-card {
+      background-color: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+    
+    .edit-info {
+      background-color: #f0f7ff;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .form-section {
+      margin-bottom: 25px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+      border-color: #007aff;
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      background-color: white;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-select:focus {
+      border-color: #007aff;
+    }
+    
+    .form-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      resize: vertical;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    
+    .form-textarea:focus {
+      border-color: #007aff;
+    }
+    
+    .form-help {
+      font-size: 13px;
+      color: #666;
+      margin-top: 5px;
+    }
+    
+    .form-error {
+      font-size: 13px;
+      color: #d32f2f;
+      margin-top: 5px;
+    }
+    
+    /* 编辑器工具栏 */
+    .editor-toolbar {
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      padding: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .toolbar-btn {
+      padding: 6px 10px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      transition: all 0.3s ease;
+    }
+    
+    .toolbar-btn:hover {
+      background-color: #e0e0e0;
+    }
+    
+    .toolbar-btn.active {
+      background-color: #e3f2fd;
+      border-color: #007aff;
+      color: #007aff;
+    }
+    
+    /* 内容编辑器 */
+    .content-editor {
+      border: 1px solid #ddd;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    
+    .editor-content {
+      width: 100%;
+      min-height: 400px;
+      padding: 15px;
+      border: none;
+      resize: vertical;
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+    }
+    
+    .editor-preview {
+      padding: 15px;
+      border-top: 1px solid #ddd;
+      min-height: 200px;
+      background-color: #f8f9fa;
+      display: none;
+    }
+    
+    /* 标签输入 */
+    .tags-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-height: 45px;
+      align-items: center;
+    }
+    
+    .tag {
+      background-color: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .tag-remove {
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .tag-input {
+      border: none;
+      flex: 1;
+      min-width: 100px;
+      outline: none;
+      font-size: 14px;
+    }
+    
+    /* 编辑原因 */
+    .edit-reason {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 4px;
+    }
+    
+    .reason-title {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    
+    .reason-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .reason-input:focus {
+      border-color: #007aff;
+    }
+    
+    /* 提交区域 */
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+    
+    .left-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    /* 历史版本 */
+    .version-history {
+      background-color: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    
+    .version-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 10px;
+    }
+    
+    .version-item {
+      padding: 10px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .version-info {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .version-user {
+      font-weight: 500;
+      color: #007aff;
+    }
+    
+    .version-time {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .version-diff {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    /* 页脚样式 */
+    .footer {
+      background-color: white;
+      padding: 30px 0;
+      margin-top: 60px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .navbar-container {
+        padding: 0 15px;
+      }
+      
+      .nav-links {
+        display: none;
+      }
+      
+      .container {
+        padding: 15px;
+      }
+      
+      .edit-term-card {
+        padding: 20px;
+      }
+      
+      .form-actions {
+        flex-wrap: wrap;
+        flex-direction: column;
+      }
+      
+      .left-actions {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .btn {
+        flex: 1;
+        min-width: 100px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 导航栏 -->
+  <header class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="logo">百度贴吧</a>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-link">首页</a>
+        <a href="term-list.html" class="nav-link active">词条</a>
+        <a href="#" class="nav-link">发现</a>
+      </nav>
+      <div class="user-actions">
+        <a href="login.html" class="btn btn-outline">登录</a>
+        <a href="register.html" class="btn btn-primary">注册</a>
+      </div>
+    </div>
+  </header>
+  
+  <!-- 主内容区 -->
+  <main class="container">
+    <!-- 面包屑导航 -->
+    <div class="breadcrumb">
+      <a href="index.html">首页</a>
+      <span>&gt;</span>
+      <a href="term-list.html">词条列表</a>
+      <span>&gt;</span>
+      <a href="term-detail.html?id=1">人工智能</a>
+      <span>&gt;</span>
+      <span>编辑词条</span>
+    </div>
+    
+    <h1 class="page-title">编辑词条：人工智能</h1>
+    
+    <!-- 编辑词条表单 -->
+    <div class="edit-term-card">
+      <div class="edit-info">
+        <p><strong>上次编辑：</strong>张小明 于 2023-10-20 14:30 更新了"未来展望"部分内容</p>
+        <p><strong>编辑提示：</strong>请确保您的修改准确、客观，避免添加主观评价内容。</p>
+      </div>
+      
+      <form id="edit-term-form">
+        <!-- 词条标题 -->
+        <div class="form-section">
+          <label class="form-label" for="term-title">词条标题 <span style="color: #d32f2f;">*</span></label>
+          <input type="text" id="term-title" class="form-input" value="人工智能" maxlength="50" required>
+          <div class="form-help">请使用简洁明了的词汇或短语作为词条标题，确保准确反映词条主题。</div>
+        </div>
+        
+        <!-- 词条分类 -->
+        <div class="form-section">
+          <label class="form-label" for="term-category">词条分类 <span style="color: #d32f2f;">*</span></label>
+          <select id="term-category" class="form-select" required>
+            <option value="">请选择分类</option>
+            <option value="tech" selected>科技</option>
+            <option value="game">游戏</option>
+            <option value="life">生活</option>
+            <option value="culture">文化</option>
+            <option value="entertainment">娱乐</option>
+            <option value="education">教育</option>
+            <option value="sports">体育</option>
+            <option value="health">健康</option>
+            <option value="finance">金融</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+        
+        <!-- 词条摘要 -->
+        <div class="form-section">
+          <label class="form-label" for="term-summary">词条摘要 <span style="color: #d32f2f;">*</span></label>
+          <textarea id="term-summary" class="form-textarea" maxlength="200" required>人工智能（Artificial Intelligence，缩写为AI）是指由人制造出来的系统所表现出来的智能。通常人工智能是指通过普通计算机程序来呈现人类智能的技术。该领域的研究包括机器人、语言识别、图像识别、自然语言处理和专家系统等。</textarea>
+          <div class="form-help">词条摘要应简明扼要地概括词条的核心内容，帮助用户快速了解词条主题。</div>
+        </div>
+        
+        <!-- 词条内容 -->
+        <div class="form-section">
+          <label class="form-label" for="term-content">词条内容 <span style="color: #d32f2f;">*</span></label>
+          
+          <!-- 编辑器工具栏 -->
+          <div class="editor-toolbar">
+            <button type="button" class="toolbar-btn" title="标题1">H1</button>
+            <button type="button" class="toolbar-btn" title="标题2">H2</button>
+            <button type="button" class="toolbar-btn" title="标题3">H3</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="加粗">B</button>
+            <button type="button" class="toolbar-btn" title="斜体">I</button>
+            <button type="button" class="toolbar-btn" title="下划线">U</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="无序列表">• 列表</button>
+            <button type="button" class="toolbar-btn" title="有序列表">1. 列表</button>
+            <button type="button" class="toolbar-btn" title="引用">" 引用</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="插入链接">🔗</button>
+            <button type="button" class="toolbar-btn" title="插入图片">🖼️</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" class="toolbar-btn" title="代码块">{ }</button>
+            <span style="margin: 0 5px; color: #ddd;">|</span>
+            <button type="button" id="preview-btn" class="toolbar-btn" title="预览">预览</button>
+          </div>
+          
+          <!-- 内容编辑区 -->
+          <div class="content-editor">
+            <textarea id="term-content" class="editor-content" required>人工智能（Artificial Intelligence，缩写为AI）是指由人制造出来的系统所表现出来的智能。通常人工智能是指通过普通计算机程序来呈现人类智能的技术。该领域的研究包括机器人、语言识别、图像识别、自然语言处理和专家系统等。
+
+## 历史发展
+人工智能的概念最早可以追溯到1956年的达特茅斯会议，由约翰·麦卡锡等人首次提出。随后，人工智能经历了多次高潮和低谷：
+- **第一次高潮（1956-1974）**：被称为"人工智能的黄金时代"，主要研究通用问题求解器、感知机等。
+- **第一次低谷（1974-1980）**：被称为"人工智能的冬天"，资金大幅减少，研究停滞。
+- **第二次高潮（1980-1987）**：专家系统和神经网络得到发展。
+- **第二次低谷（1987-1993）**：专家系统成本高昂且缺乏灵活性。
+- **第三次高潮（2012至今）**：深度学习和大数据技术推动人工智能进入新阶段。
+
+## 核心技术
+人工智能的核心技术包括：
+1. **机器学习**：计算机通过数据学习而无需明确编程的能力。
+2. **深度学习**：基于神经网络的机器学习算法，能够处理大量复杂数据。
+3. **自然语言处理**：使计算机能够理解、解释和生成人类语言。
+4. **计算机视觉**：使计算机能够理解和分析图像和视频。
+5. **专家系统**：模拟人类专家决策能力的计算机系统。
+6. **机器人技术**：研究、设计和应用机器人的科学。
+
+## 应用领域
+人工智能在各个领域都有广泛应用：
+- **医疗健康**：辅助诊断、药物研发、个性化治疗方案。
+- **金融服务**：风险评估、欺诈检测、算法交易。
+- **交通运输**：自动驾驶、智能交通系统。
+- **教育**：个性化学习、智能辅导系统。
+- **娱乐媒体**：内容推荐、虚拟角色、游戏AI。
+- **零售**：个性化推荐、库存管理、智能客服。
+
+## 伦理问题
+随着人工智能技术的快速发展，一系列伦理问题也随之出现：
+"人工智能可能是人类历史上最好的事情，也可能是最糟的。我们真的不知道，但我们应该竭尽所能，确保其发展朝着好的方向。" —— 斯蒂芬·霍金
+- **隐私问题**：数据收集和使用引发的隐私担忧。
+- **就业影响**：自动化可能导致大量工作岗位消失。
+- **算法偏见**：AI系统可能继承训练数据中的偏见。
+- **安全风险**：AI技术可能被滥用或产生意外后果。
+- **责任归属**：AI决策的责任如何划分。
+
+## 未来展望
+人工智能的未来发展趋势包括：
+- **通用人工智能（AGI）**：追求与人类同等智能水平的AI系统。
+- **人机协作**：AI与人类协同工作，优势互补。
+- **量子计算与AI结合**：量子计算可能极大提升AI处理能力。
+- **AI标准化与监管**：建立行业标准和伦理框架。
+- **生成式AI的广泛应用**：如GPT、Midjourney等生成式AI将在更多领域得到应用。
+
+人工智能技术的发展将持续深刻影响人类社会的各个方面，如何平衡技术进步与社会责任，是我们面临的重要课题。</textarea>
+            <div id="editor-preview" class="editor-preview">预览区域</div>
+          </div>
+          <div class="form-help">词条内容应详细、准确、客观，建议按照一定的逻辑结构组织内容，可使用标题、列表等排版元素增强可读性。</div>
+        </div>
+        
+        <!-- 参考资料 -->
+        <div class="form-section">
+          <label class="form-label" for="term-references">参考资料</label>
+          <textarea id="term-references" class="form-textarea">1. 《人工智能：一种现代的方法》，斯图尔特·罗素、彼得·诺维格著
+2. https://www.aaai.org/ - 美国人工智能协会官方网站
+3. https://www.ijcai.org/ - 国际人工智能联合会议官方网站
+4. 《深度学习》，伊恩·古德费洛、约书亚·本吉奥、亚伦·库维尔著</textarea>
+          <div class="form-help">为保证词条内容的准确性和权威性，建议提供可靠的参考资料来源，如学术论文、权威网站、书籍等。</div>
+        </div>
+        
+        <!-- 词条标签 -->
+        <div class="form-section">
+          <label class="form-label" for="term-tags">词条标签</label>
+          <div class="tags-input">
+            <div class="tag">人工智能 <span class="tag-remove">×</span></div>
+            <div class="tag">科技 <span class="tag-remove">×</span></div>
+            <div class="tag">机器学习 <span class="tag-remove">×</span></div>
+            <div class="tag">深度学习 <span class="tag-remove">×</span></div>
+            <input type="text" class="tag-input" placeholder="添加标签（按回车确认）" id="tag-input">
+          </div>
+          <div class="form-help">添加相关标签，有助于用户更准确地找到您创建的词条（最多添加5个标签）。</div>
+        </div>
+        
+        <!-- 编辑原因 -->
+        <div class="edit-reason">
+          <div class="reason-title">编辑原因（选填）</div>
+          <input type="text" class="reason-input" placeholder="请简要说明您的修改内容或原因">
+        </div>
+        
+        <!-- 提交按钮 -->
+        <div class="form-actions">
+          <div class="left-actions">
+            <a href="term-detail.html?id=1" class="btn btn-secondary">取消</a>
+            <button type="button" class="btn btn-danger" id="delete-term-btn">删除词条</button>
+          </div>
+          <button type="submit" class="btn btn-primary">保存修改</button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- 历史版本 -->
+    <div class="version-history">
+      <h2 class="section-title">历史版本</h2>
+      <div class="version-list">
+        <div class="version-item">
+          <div class="version-info">
+            <span class="version-user">张小明</span>
+            <span class="version-time">2023-10-20 14:30</span>
+            <span class="version-diff">更新了"未来展望"部分内容，添加了生成式AI相关内容</span>
+          </div>
+          <button class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">比较</button>
+        </div>
+        
+        <div class="version-item">
+          <div class="version-info">
+            <span class="version-user">李华</span>
+            <span class="version-time">2023-10-18 09:15</span>
+            <span class="version-diff">添加了"伦理问题"章节，完善了核心技术部分</span>
+          </div>
+          <button class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">比较</button>
+        </div>
+        
+        <div class="version-item">
+          <div class="version-info">
+            <span class="version-user">王强</span>
+            <span class="version-time">2023-10-15 16:45</span>
+            <span class="version-diff">修正了部分术语解释，更新了应用领域的案例</span>
+          </div>
+          <button class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">比较</button>
+        </div>
+        
+        <div class="version-item">
+          <div class="version-info">
+            <span class="version-user">知识管理员</span>
+            <span class="version-time">2023-01-15 10:00</span>
+            <span class="version-diff">创建词条</span>
+          </div>
+          <button class="btn btn-outline btn-sm" style="padding: 4px 8px; font-size: 12px;">比较</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- 页脚 -->
+  <footer class="footer">
+    <p>© 2023 百度贴吧 版权所有</p>
+  </footer>
+  
+  <script>
+    // 简单的交互逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+      // 预览按钮点击事件
+      const previewBtn = document.getElementById('preview-btn');
+      const editorContent = document.getElementById('term-content');
+      const editorPreview = document.getElementById('editor-preview');
+      
+      if (previewBtn && editorContent && editorPreview) {
+        previewBtn.addEventListener('click', function() {
+          // 切换预览状态
+          this.classList.toggle('active');
+          
+          if (this.classList.contains('active')) {
+            // 显示预览
+            editorContent.style.display = 'none';
+            editorPreview.style.display = 'block';
+            editorPreview.innerHTML = editorContent.value
+              .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+              .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+              .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+              .replace(/\n/g, '<br>');
+            this.textContent = '编辑';
+          } else {
+            // 显示编辑
+            editorContent.style.display = 'block';
+            editorPreview.style.display = 'none';
+            this.textContent = '预览';
+          }
+        });
+      }
+      
+      // 标签功能
+      const tagInput = document.getElementById('tag-input');
+      const tagsInput = document.querySelector('.tags-input');
+      
+      if (tagInput && tagsInput) {
+        tagInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter' && this.value.trim()) {
+            e.preventDefault();
+            
+            // 检查标签数量限制
+            const existingTags = document.querySelectorAll('.tag');
+            if (existingTags.length >= 5) {
+              alert('最多添加5个标签');
+              return;
+            }
+            
+            // 创建新标签
+            const tagText = this.value.trim();
+            const tagElement = document.createElement('div');
+            tagElement.className = 'tag';
+            tagElement.innerHTML = `${tagText} <span class="tag-remove">×</span>`;
+            
+            // 添加删除标签的事件
+            const removeBtn = tagElement.querySelector('.tag-remove');
+            removeBtn.addEventListener('click', function() {
+              tagElement.remove();
+            });
+            
+            // 插入标签到输入框前
+            tagsInput.insertBefore(tagElement, this);
+            
+            // 清空输入框
+            this.value = '';
+          }
+        });
+      }
+      
+      // 删除已存在的标签
+      document.querySelectorAll('.tag-remove').forEach(btn => {
+        btn.addEventListener('click', function() {
+          this.parentElement.remove();
+        });
+      });
+      
+      // 删除词条按钮
+      const deleteTermBtn = document.getElementById('delete-term-btn');
+      if (deleteTermBtn) {
+        deleteTermBtn.addEventListener('click', function() {
+          if (confirm('确定要删除此词条吗？此操作不可恢复。')) {
+            alert('词条已删除');
+            window.location.href = 'term-list.html';
+          }
+        });
+      }
+      
+      // 表单提交
+      const editForm = document.getElementById('edit-term-form');
+      if (editForm) {
+        editForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // 简单的表单验证
+          const title = document.getElementById('term-title').value;
+          const category = document.getElementById('term-category').value;
+          const summary = document.getElementById('term-summary').value;
+          const content = document.getElementById('term-content').value;
+          
+          if (!title || !category || !summary || !content) {
+            alert('请填写所有必填字段');
+            return;
+          }
+          
+          // 模拟提交成功
+          alert('词条修改成功！等待审核通过后即可更新。');
+          window.location.href = 'term-detail.html?id=1';
+        });
+      }
+      
+      // 从URL获取词条ID
+      function getTermId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('id') || '1'; // 默认返回1
+      }
+      
+      // 可以根据ID加载对应的词条数据
+      const termId = getTermId();
+    });
+  </script>
+</body>
+</html>
