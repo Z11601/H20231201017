@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度贴吧 - 词条详情</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.full.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .content {
+            display: flex;
+            gap: 20px;
+        }
+        .main-content {
+            flex: 1;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            width: 300px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .entry-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #303133;
+        }
+        .entry-meta {
+            display: flex;
+            gap: 20px;
+            color: #909399;
+            font-size: 14px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .entry-content {
+            font-size: 16px;
+            color: #606266;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        .entry-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .entry-actions {
+            display: flex;
+            gap: 15px;
+            padding: 15px 0;
+            border-top: 1px solid #ebeef5;
+            border-bottom: 1px solid #ebeef5;
+            margin-bottom: 30px;
+        }
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #909399;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .action-btn:hover {
+            color: #409eff;
+        }
+        .comments-section {
+            margin-top: 30px;
+        }
+        .comments-section h3 {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        .comment-form {
+            margin-bottom: 30px;
+        }
+        .comment-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .comment-author {
+            font-weight: 500;
+            color: #303133;
+        }
+        .comment-time {
+            font-size: 12px;
+            color: #909399;
+        }
+        .comment-content {
+            color: #606266;
+            line-height: 1.6;
+        }
+        .related-entries {
+            margin-top: 20px;
+        }
+        .related-entries h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .related-item {
+            padding: 10px 0;
+            border-bottom: 1px dashed #ebeef5;
+        }
+        .related-item:last-child {
+            border-bottom: none;
+        }
+        .related-item a {
+            color: #409eff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        .related-item a:hover {
+            color: #66b1ff;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #909399;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 头部 -->
+            <div class="header">
+                <h1>百度贴吧 - 词条详情</h1>
+                <div class="header-actions">
+                    <el-button type="primary" @click="editEntry">编辑词条</el-button>
+                    <el-button @click="backToList">返回列表</el-button>
+                </div>
+            </div>
+            
+            <!-- 内容区域 -->
+            <div class="content">
+                <!-- 主要内容 -->
+                <div class="main-content">
+                    <!-- 词条标题和元信息 -->
+                    <div class="entry-title">Vue 3 新特性详解</div>
+                    <div class="entry-meta">
+                        <span>分类：科技</span>
+                        <span>作者：Vue爱好者</span>
+                        <span>发布时间：2023-06-15 10:30:00</span>
+                        <span>浏览次数：12453</span>
+                    </div>
+                    
+                    <!-- 词条内容 -->
+                    <div class="entry-content">
+                        <p>Vue 3 作为前端领域最受欢迎的框架之一，带来了许多激动人心的新特性和性能改进。本文将详细介绍Vue 3的核心新特性及其应用场景。</p>
+                        
+                        <h3>1. Composition API</h3>
+                        <p>Composition API是Vue 3中最重要的新特性之一，它提供了一种更灵活的方式来组织组件逻辑。与Options API不同，Composition API允许我们根据逻辑关注点而不是生命周期钩子来组织代码。</p>
+                        <pre>
+// 使用Composition API的示例
+import { ref, computed, onMounted } from 'vue'
+
+export default {
+  setup() {
+    const count = ref(0)
+    const doubleCount = computed(() => count.value * 2)
+    
+    const increment = () => {
+      count.value++
+    }
+    
+    onMounted(() => {
+      console.log('组件已挂载')
+    })
+    
+    return {
+      count,
+      doubleCount,
+      increment
+    }
+  }
+}</pre>
+                        
+                        <h3>2. Teleport</h3>
+                        <p>Teleport（传送门）允许我们将组件的内容渲染到DOM树中的任意位置，而不受组件层次结构的限制。这在实现模态框、提示框等UI组件时特别有用。</p>
+                        
+                        <h3>3. Fragments</h3>
+                        <p>在Vue 3中，组件不再需要有一个根元素，可以直接返回多个元素，这使得组件的结构更加灵活。</p>
+                        
+                        <h3>4. 更好的TypeScript支持</h3>
+                        <p>Vue 3的源码是使用TypeScript编写的，因此它提供了更好的TypeScript类型支持，这对于构建大型应用程序非常有帮助。</p>
+                        
+                        <h3>5. 性能改进</h3>
+                        <p>Vue 3在多个方面进行了性能优化，包括更高效的虚拟DOM实现、静态提升、补丁标志等，使得应用程序的运行速度更快。</p>
+                        
+                        <img src="https://via.placeholder.com/800x400?text=Vue+3+性能对比图" alt="Vue 3 性能对比图">
+                        
+                        <h3>总结</h3>
+                        <p>Vue 3通过一系列新特性和性能改进，为开发者提供了更好的开发体验和更高的应用性能。无论是新项目还是迁移现有项目，Vue 3都是一个值得考虑的选择。</p>
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <div class="entry-actions">
+                        <div class="action-btn" @click="like">
+                            <el-icon><i-ep-thumb-up /></el-icon>
+                            <span>{{ likes }} 赞同</span>
+                        </div>
+                        <div class="action-btn" @click="collect">
+                            <el-icon><i-ep-star /></el-icon>
+                            <span>{{ collected ? '取消收藏' : '收藏' }}</span>
+                        </div>
+                        <div class="action-btn" @click="share">
+                            <el-icon><i-ep-share /></el-icon>
+                            <span>分享</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 评论区 -->
+                    <div class="comments-section">
+                        <h3>评论 (326)</h3>
+                        
+                        <!-- 评论表单 -->
+                        <div class="comment-form">
+                            <el-input
+                                v-model="commentContent"
+                                type="textarea"
+                                :rows="4"
+                                placeholder="写下你的评论..."
+                            ></el-input>
+                            <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                                <el-button type="primary" @click="submitComment">提交评论</el-button>
+                            </div>
+                        </div>
+                        
+                        <!-- 评论列表 -->
+                        <div class="comment-list">
+                            <div class="comment-item" v-for="comment in comments" :key="comment.id">
+                                <div class="comment-header">
+                                    <span class="comment-author">{{ comment.author }}</span>
+                                    <span class="comment-time">{{ formatDate(comment.time) }}</span>
+                                </div>
+                                <div class="comment-content">{{ comment.content }}</div>
+                            </div>
+                            
+                            <!-- 分页 -->
+                            <div style="margin-top: 20px; display: flex; justify-content: center;">
+                                <el-pagination
+                                    v-model:current-page="commentPage"
+                                    v-model:page-size="commentPageSize"
+                                    layout="prev, pager, next"
+                                    :total="326"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 侧边栏 -->
+                <div class="sidebar">
+                    <!-- 作者信息 -->
+                    <div style="margin-bottom: 30px;">
+                        <h4>作者信息</h4>
+                        <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px;">
+                            <div style="width: 60px; height: 60px; border-radius: 50%; background-color: #409eff; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px;">
+                                V
+                            </div>
+                            <div>
+                                <div style="font-weight: 500;">Vue爱好者</div>
+                                <div style="font-size: 12px; color: #909399; margin-top: 5px;">发布了 42 个词条</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 相关词条 -->
+                    <div class="related-entries">
+                        <h4>相关词条</h4>
+                        <div class="related-item" v-for="item in relatedEntries" :key="item.id">
+                            <a href="#" @click.prevent="viewRelated(item.id)">{{ item.title }}</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 热门词条 -->
+                    <div class="related-entries">
+                        <h4>热门词条</h4>
+                        <div class="related-item" v-for="item in hotEntries" :key="item.id">
+                            <a href="#" @click.prevent="viewRelated(item.id)">{{ item.title }}</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                <p>© 2023 百度贴吧 - 词条管理系统</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    likes: 523,
+                    collected: false,
+                    commentContent: '',
+                    commentPage: 1,
+                    commentPageSize: 10,
+                    comments: [
+                        {
+                            id: 1,
+                            author: "前端新手",
+                            time: "2023-06-15 11:20:00",
+                            content: "写得很详细，对我学习Vue 3很有帮助！特别是Composition API的部分，解释得很清楚。"
+                        },
+                        {
+                            id: 2,
+                            author: "资深开发者",
+                            time: "2023-06-15 12:35:00",
+                            content: "补充一点，Vue 3的性能确实比Vue 2提升了很多，尤其是在大型应用中的表现更为明显。我们团队已经将几个项目迁移到了Vue 3，体验很好。"
+                        },
+                        {
+                            id: 3,
+                            author: "学习者",
+                            time: "2023-06-15 14:10:00",
+                            content: "请问什么时候应该使用Composition API，什么时候使用Options API呢？"
+                        }
+                    ],
+                    relatedEntries: [
+                        { id: 11, title: "Vue 3 组件设计最佳实践" },
+                        { id: 12, title: "Vue Router 4 新特性介绍" },
+                        { id: 13, title: "Pinia：Vue 3 的状态管理方案" },
+                        { id: 14, title: "Vue 3 与 TypeScript 结合使用" }
+                    ],
+                    hotEntries: [
+                        { id: 21, title: "React 18 新特性解析" },
+                        { id: 22, title: "前端工程化实践指南" },
+                        { id: 23, title: "JavaScript 异步编程详解" },
+                        { id: 24, title: "CSS Grid 布局完全指南" }
+                    ]
+                }
+            },
+            methods: {
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleString('zh-CN');
+                },
+                like() {
+                    this.likes++;
+                    this.$message.success('点赞成功！');
+                },
+                collect() {
+                    this.collected = !this.collected;
+                    this.$message.success(this.collected ? '收藏成功！' : '已取消收藏！');
+                },
+                share() {
+                    this.$message.info('分享功能开发中...');
+                },
+                submitComment() {
+                    if (!this.commentContent.trim()) {
+                        this.$message.warning('评论内容不能为空！');
+                        return;
+                    }
+                    
+                    // 在实际应用中，这里会发送评论到服务器
+                    this.$message.success('评论提交成功！');
+                    this.commentContent = '';
+                },
+                editEntry() {
+                    // 在实际应用中，这里会跳转到编辑页面
+                    console.log('编辑词条');
+                    alert('编辑词条');
+                },
+                backToList() {
+                    // 在实际应用中，这里会返回列表页
+                    console.log('返回列表');
+                    alert('返回列表');
+                },
+                viewRelated(id) {
+                    // 在实际应用中，这里会跳转到相关词条
+                    console.log('查看相关词条ID:', id);
+                    alert(`查看相关词条ID: ${id}`);
+                }
+            }
+        });
+        
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

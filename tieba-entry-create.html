@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度贴吧 - 创建词条</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #606266;
+        }
+        .editor-container {
+            margin-top: 10px;
+        }
+        .quill-editor {
+            height: 400px;
+        }
+        .editor-toolbar {
+            border: 1px solid #dcdfe6;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .editor-content {
+            border: 1px solid #dcdfe6;
+            border-radius: 0 0 4px 4px;
+        }
+        .submit-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ebeef5;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #909399;
+            font-size: 12px;
+        }
+        .tip-message {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 头部 -->
+            <div class="header">
+                <h1>百度贴吧 - 创建词条</h1>
+                <div>
+                    <el-button @click="backToList">返回列表</el-button>
+                </div>
+            </div>
+            
+            <!-- 表单内容 -->
+            <div class="content">
+                <el-form :model="entryForm" ref="entryFormRef" :rules="rules" label-width="100px">
+                    <!-- 词条标题 -->
+                    <el-form-item label="词条标题" prop="title">
+                        <el-input v-model="entryForm.title" placeholder="请输入词条标题" maxlength="100" show-word-limit>
+                            <template #prepend>
+                                <el-icon><i-ep-edit /></el-icon>
+                            </template>
+                        </el-input>
+                        <div class="tip-message">标题应简洁明了，准确表达词条主题（建议10-30字）</div>
+                    </el-form-item>
+                    
+                    <!-- 词条分类 -->
+                    <el-form-item label="词条分类" prop="category">
+                        <el-select v-model="entryForm.category" placeholder="请选择词条分类" style="width: 100%;">
+                            <el-option label="科技" value="科技"></el-option>
+                            <el-option label="娱乐" value="娱乐"></el-option>
+                            <el-option label="体育" value="体育"></el-option>
+                            <el-option label="教育" value="教育"></el-option>
+                            <el-option label="生活" value="生活"></el-option>
+                            <el-option label="其他" value="其他"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    
+                    <!-- 词条标签 -->
+                    <el-form-item label="词条标签" prop="tags">
+                        <el-tag
+                            v-for="tag in entryForm.tags"
+                            :key="tag"
+                            closable
+                            :disable-transitions="false"
+                            @close="handleClose(tag)"
+                            style="margin-right: 10px; margin-bottom: 10px;"
+                        >
+                            {{ tag }}
+                        </el-tag>
+                        <el-input
+                            v-model="inputTag"
+                            class="tag-input"
+                            placeholder="输入标签后按回车添加"
+                            @keyup.enter="handleInputConfirm"
+                            clearable
+                            style="width: 200px; margin-right: 10px;"
+                        >
+                            <template #append>
+                                <el-button @click="handleInputConfirm">添加</el-button>
+                            </template>
+                        </el-input>
+                        <div class="tip-message">最多添加5个标签，每个标签不超过10个字符</div>
+                    </el-form-item>
+                    
+                    <!-- 词条摘要 -->
+                    <el-form-item label="词条摘要" prop="summary">
+                        <el-input
+                            v-model="entryForm.summary"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="请输入词条摘要"
+                            maxlength="200"
+                            show-word-limit
+                        ></el-input>
+                        <div class="tip-message">简要描述词条内容，吸引读者点击查看（建议50-150字）</div>
+                    </el-form-item>
+                    
+                    <!-- 词条封面 -->
+                    <el-form-item label="词条封面" prop="coverImage">
+                        <el-upload
+                            class="upload-demo"
+                            action="#"
+                            :on-preview="handlePictureCardPreview"
+                            :on-remove="handleRemove"
+                            :on-change="handleCoverChange"
+                            :before-upload="beforeUpload"
+                            list-type="picture-card"
+                            :limit="1"
+                            :file-list="fileList"
+                        >
+                            <el-icon><i-ep-plus /></el-icon>
+                            <template #tip>
+                                <div class="el-upload__tip">
+                                    请上传jpg/png格式的图片，单个文件大小不超过2MB
+                                </div>
+                            </template>
+                        </el-upload>
+                        <el-dialog v-model="dialogVisible">
+                            <img w-full :src="dialogImageUrl" alt="词条封面预览" />
+                        </el-dialog>
+                    </el-form-item>
+                    
+                    <!-- 词条内容 -->
+                    <el-form-item label="词条内容" prop="content">
+                        <div id="editor" class="quill-editor"></div>
+                        <div class="tip-message">请详细编写词条内容，建议包含引言、主体内容和总结等部分</div>
+                    </el-form-item>
+                    
+                    <!-- 发布选项 -->
+                    <el-form-item label="发布选项">
+                        <el-checkbox v-model="entryForm.isPublic">公开发布</el-checkbox>
+                        <el-checkbox v-model="entryForm.allowComment" style="margin-left: 20px;">允许评论</el-checkbox>
+                    </el-form-item>
+                    
+                    <!-- 提交按钮 -->
+                    <div class="submit-section">
+                        <el-button type="primary" @click="submitForm('entryFormRef')">提交创建</el-button>
+                        <el-button @click="resetForm('entryFormRef')">重置表单</el-button>
+                        <el-button @click="saveDraft">保存草稿</el-button>
+                    </div>
+                </el-form>
+            </div>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                <p>© 2023 百度贴吧 - 词条管理系统</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    entryForm: {
+                        title: '',
+                        category: '',
+                        tags: [],
+                        summary: '',
+                        coverImage: '',
+                        content: '',
+                        isPublic: true,
+                        allowComment: true
+                    },
+                    inputTag: '',
+                    dialogVisible: false,
+                    dialogImageUrl: '',
+                    fileList: [],
+                    rules: {
+                        title: [
+                            { required: true, message: '请输入词条标题', trigger: 'blur' },
+                            { min: 5, max: 100, message: '标题长度应在 5 到 100 个字符之间', trigger: 'blur' }
+                        ],
+                        category: [
+                            { required: true, message: '请选择词条分类', trigger: 'change' }
+                        ],
+                        summary: [
+                            { required: true, message: '请输入词条摘要', trigger: 'blur' },
+                            { min: 10, max: 200, message: '摘要长度应在 10 到 200 个字符之间', trigger: 'blur' }
+                        ],
+                        content: [
+                            { required: true, message: '请输入词条内容', trigger: 'blur' },
+                            { min: 50, message: '内容不能少于 50 个字符', trigger: 'blur' }
+                        ]
+                    },
+                    editor: null
+                }
+            },
+            mounted() {
+                // 初始化富文本编辑器
+                this.initEditor();
+            },
+            methods: {
+                initEditor() {
+                    this.editor = new Quill('#editor', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        },
+                        placeholder: '请输入词条详细内容...'
+                    });
+                    
+                    // 监听编辑器内容变化，同步到表单
+                    this.editor.on('text-change', () => {
+                        this.entryForm.content = this.editor.root.innerHTML;
+                    });
+                },
+                handleClose(tag) {
+                    this.entryForm.tags = this.entryForm.tags.filter(item => item !== tag);
+                },
+                handleInputConfirm() {
+                    if (this.inputTag && this.entryForm.tags.length < 5) {
+                        if (!this.entryForm.tags.includes(this.inputTag) && this.inputTag.length <= 10) {
+                            this.entryForm.tags.push(this.inputTag);
+                            this.inputTag = '';
+                        } else if (this.entryForm.tags.includes(this.inputTag)) {
+                            this.$message.warning('该标签已存在！');
+                        } else {
+                            this.$message.warning('标签长度不能超过10个字符！');
+                        }
+                    } else if (this.entryForm.tags.length >= 5) {
+                        this.$message.warning('最多只能添加5个标签！');
+                    }
+                },
+                handleRemove(file, fileList) {
+                    console.log(file, fileList);
+                    this.entryForm.coverImage = '';
+                },
+                handlePictureCardPreview(file) {
+                    this.dialogImageUrl = file.url;
+                    this.dialogVisible = true;
+                },
+                handleCoverChange(file, fileList) {
+                    // 在实际应用中，这里会上传文件到服务器
+                    // 这里只是模拟，使用base64作为图片路径
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.entryForm.coverImage = e.target.result;
+                    };
+                    reader.readAsDataURL(file.raw);
+                },
+                beforeUpload(file) {
+                    const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+
+                    if (!isJPG) {
+                        this.$message.error('上传图片只能是 JPG/PNG 格式!');
+                    }
+                    if (!isLt2M) {
+                        this.$message.error('上传图片大小不能超过 2MB!');
+                    }
+                    return isJPG && isLt2M;
+                },
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+                            // 在实际应用中，这里会提交表单数据到服务器
+                            console.log('表单数据:', this.entryForm);
+                            this.$message.success('词条创建成功！');
+                            // 模拟成功后返回列表页
+                            setTimeout(() => {
+                                this.backToList();
+                            }, 1500);
+                        } else {
+                            console.log('表单验证失败');
+                            return false;
+                        }
+                    });
+                },
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                    this.entryForm.tags = [];
+                    this.fileList = [];
+                    this.editor.setText('');
+                    this.entryForm.content = '';
+                },
+                saveDraft() {
+                    // 在实际应用中，这里会保存草稿到服务器
+                    this.$message.success('草稿保存成功！');
+                },
+                backToList() {
+                    // 在实际应用中，这里会返回列表页
+                    console.log('返回列表');
+                    alert('返回列表');
+                }
+            }
+        });
+        
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

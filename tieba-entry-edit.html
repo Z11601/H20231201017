@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度贴吧 - 编辑词条</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
+    <script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .form-item {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #606266;
+        }
+        .editor-container {
+            margin-top: 10px;
+        }
+        .quill-editor {
+            height: 400px;
+        }
+        .editor-toolbar {
+            border: 1px solid #dcdfe6;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .editor-content {
+            border: 1px solid #dcdfe6;
+            border-radius: 0 0 4px 4px;
+        }
+        .submit-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ebeef5;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #909399;
+            font-size: 12px;
+        }
+        .tip-message {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 5px;
+        }
+        .entry-meta {
+            background-color: #f5f7fa;
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #606266;
+        }
+        .entry-meta-item {
+            margin-right: 20px;
+        }
+        .el-upload-list {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 头部 -->
+            <div class="header">
+                <h1>百度贴吧 - 编辑词条</h1>
+                <div>
+                    <el-button @click="backToDetail">查看详情</el-button>
+                    <el-button @click="backToList" type="primary">返回列表</el-button>
+                </div>
+            </div>
+            
+            <!-- 表单内容 -->
+            <div class="content">
+                <!-- 词条元信息 -->
+                <div class="entry-meta">
+                    <span class="entry-meta-item">词条ID：{{ entryId }}</span>
+                    <span class="entry-meta-item">创建时间：{{ createTime }}</span>
+                    <span class="entry-meta-item">最后修改：{{ updateTime }}</span>
+                    <span class="entry-meta-item">浏览次数：{{ viewCount }}</span>
+                    <span class="entry-meta-item">评论数量：{{ commentCount }}</span>
+                </div>
+                
+                <el-form :model="entryForm" ref="entryFormRef" :rules="rules" label-width="100px">
+                    <!-- 词条标题 -->
+                    <el-form-item label="词条标题" prop="title">
+                        <el-input v-model="entryForm.title" placeholder="请输入词条标题" maxlength="100" show-word-limit>
+                            <template #prepend>
+                                <el-icon><i-ep-edit /></el-icon>
+                            </template>
+                        </el-input>
+                        <div class="tip-message">标题应简洁明了，准确表达词条主题（建议10-30字）</div>
+                    </el-form-item>
+                    
+                    <!-- 词条分类 -->
+                    <el-form-item label="词条分类" prop="category">
+                        <el-select v-model="entryForm.category" placeholder="请选择词条分类" style="width: 100%;">
+                            <el-option label="科技" value="科技"></el-option>
+                            <el-option label="娱乐" value="娱乐"></el-option>
+                            <el-option label="体育" value="体育"></el-option>
+                            <el-option label="教育" value="教育"></el-option>
+                            <el-option label="生活" value="生活"></el-option>
+                            <el-option label="其他" value="其他"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    
+                    <!-- 词条标签 -->
+                    <el-form-item label="词条标签" prop="tags">
+                        <el-tag
+                            v-for="tag in entryForm.tags"
+                            :key="tag"
+                            closable
+                            :disable-transitions="false"
+                            @close="handleClose(tag)"
+                            style="margin-right: 10px; margin-bottom: 10px;"
+                        >
+                            {{ tag }}
+                        </el-tag>
+                        <el-input
+                            v-model="inputTag"
+                            class="tag-input"
+                            placeholder="输入标签后按回车添加"
+                            @keyup.enter="handleInputConfirm"
+                            clearable
+                            style="width: 200px; margin-right: 10px;"
+                        >
+                            <template #append>
+                                <el-button @click="handleInputConfirm">添加</el-button>
+                            </template>
+                        </el-input>
+                        <div class="tip-message">最多添加5个标签，每个标签不超过10个字符</div>
+                    </el-form-item>
+                    
+                    <!-- 词条摘要 -->
+                    <el-form-item label="词条摘要" prop="summary">
+                        <el-input
+                            v-model="entryForm.summary"
+                            type="textarea"
+                            :rows="3"
+                            placeholder="请输入词条摘要"
+                            maxlength="200"
+                            show-word-limit
+                        ></el-input>
+                        <div class="tip-message">简要描述词条内容，吸引读者点击查看（建议50-150字）</div>
+                    </el-form-item>
+                    
+                    <!-- 词条封面 -->
+                    <el-form-item label="词条封面" prop="coverImage">
+                        <el-upload
+                            class="upload-demo"
+                            action="#"
+                            :on-preview="handlePictureCardPreview"
+                            :on-remove="handleRemove"
+                            :on-change="handleCoverChange"
+                            :before-upload="beforeUpload"
+                            list-type="picture-card"
+                            :limit="1"
+                            :file-list="fileList"
+                        >
+                            <el-icon><i-ep-plus /></el-icon>
+                            <template #tip>
+                                <div class="el-upload__tip">
+                                    请上传jpg/png格式的图片，单个文件大小不超过2MB
+                                </div>
+                            </template>
+                        </el-upload>
+                        <el-dialog v-model="dialogVisible">
+                            <img w-full :src="dialogImageUrl" alt="词条封面预览" />
+                        </el-dialog>
+                    </el-form-item>
+                    
+                    <!-- 词条内容 -->
+                    <el-form-item label="词条内容" prop="content">
+                        <div id="editor" class="quill-editor"></div>
+                        <div class="tip-message">请详细编写词条内容，建议包含引言、主体内容和总结等部分</div>
+                    </el-form-item>
+                    
+                    <!-- 发布选项 -->
+                    <el-form-item label="发布选项">
+                        <el-checkbox v-model="entryForm.isPublic">公开发布</el-checkbox>
+                        <el-checkbox v-model="entryForm.allowComment" style="margin-left: 20px;">允许评论</el-checkbox>
+                    </el-form-item>
+                    
+                    <!-- 历史版本 -->
+                    <el-form-item label="历史版本">
+                        <el-button type="text" @click="showHistory">查看历史版本</el-button>
+                    </el-form-item>
+                    
+                    <!-- 提交按钮 -->
+                    <div class="submit-section">
+                        <el-button type="primary" @click="submitForm('entryFormRef')">保存修改</el-button>
+                        <el-button @click="resetForm('entryFormRef')">恢复原状</el-button>
+                        <el-button @click="saveDraft" type="info">保存草稿</el-button>
+                        <el-button type="danger" @click="confirmDelete">删除词条</el-button>
+                    </div>
+                </el-form>
+            </div>
+            
+            <!-- 删除确认对话框 -->
+            <el-dialog
+                v-model="deleteDialogVisible"
+                title="确认删除"
+                width="30%"
+            >
+                <span>确定要删除这个词条吗？此操作不可恢复！</span>
+                <template #footer>
+                    <span class="dialog-footer">
+                        <el-button @click="deleteDialogVisible = false">取消</el-button>
+                        <el-button type="danger" @click="deleteEntry">确认删除</el-button>
+                    </span>
+                </template>
+            </el-dialog>
+            
+            <!-- 历史版本对话框 -->
+            <el-dialog
+                v-model="historyDialogVisible"
+                title="历史版本"
+                width="70%"
+                :before-close="handleCloseHistory"
+            >
+                <el-table :data="historyVersions" stripe style="width: 100%">
+                    <el-table-column prop="version" label="版本号" width="80"></el-table-column>
+                    <el-table-column prop="editor" label="编辑者" width="120"></el-table-column>
+                    <el-table-column prop="editTime" label="编辑时间"></el-table-column>
+                    <el-table-column prop="changes" label="修改内容"></el-table-column>
+                    <el-table-column label="操作" width="120" fixed="right">
+                        <template #default="scope">
+                            <el-button type="text" size="small" @click="previewHistory(scope.row)">预览</el-button>
+                            <el-button type="text" size="small" @click="restoreHistory(scope.row)" :disabled="scope.row.isCurrent">恢复</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-dialog>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                <p>© 2023 百度贴吧 - 词条管理系统</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    // 词条ID和元信息
+                    entryId: 'TB202308150001',
+                    createTime: '2023-08-15 14:30:25',
+                    updateTime: '2023-08-20 09:45:16',
+                    viewCount: 1258,
+                    commentCount: 36,
+                    
+                    // 表单数据
+                    entryForm: {
+                        title: 'Vue 3 框架入门指南',
+                        category: '科技',
+                        tags: ['Vue', '前端', 'JavaScript', '框架', '教程'],
+                        summary: 'Vue 3是一款轻量级的JavaScript前端框架，本文将详细介绍Vue 3的核心概念、基本用法和高级特性，帮助初学者快速入门。',
+                        coverImage: 'https://via.placeholder.com/800x400?text=Vue+3+Cover+Image',
+                        content: '<h2>Vue 3 框架介绍</h2><p>Vue 3是一款用于构建用户界面的渐进式JavaScript框架...</p>',
+                        isPublic: true,
+                        allowComment: true
+                    },
+                    
+                    // 其他状态
+                    inputTag: '',
+                    dialogVisible: false,
+                    dialogImageUrl: '',
+                    fileList: [{
+                        name: 'vue3-cover.jpg',
+                        url: 'https://via.placeholder.com/800x400?text=Vue+3+Cover+Image'
+                    }],
+                    deleteDialogVisible: false,
+                    historyDialogVisible: false,
+                    historyVersions: [
+                        {
+                            version: 'v1.3',
+                            editor: '张三',
+                            editTime: '2023-08-20 09:45:16',
+                            changes: '更新了Composition API部分',
+                            isCurrent: true
+                        },
+                        {
+                            version: 'v1.2',
+                            editor: '李四',
+                            editTime: '2023-08-18 15:20:33',
+                            changes: '修复了部分示例代码',
+                            isCurrent: false
+                        },
+                        {
+                            version: 'v1.1',
+                            editor: '王五',
+                            editTime: '2023-08-16 11:10:45',
+                            changes: '添加了响应式原理说明',
+                            isCurrent: false
+                        },
+                        {
+                            version: 'v1.0',
+                            editor: '张三',
+                            editTime: '2023-08-15 14:30:25',
+                            changes: '创建词条',
+                            isCurrent: false
+                        }
+                    ],
+                    
+                    // 验证规则
+                    rules: {
+                        title: [
+                            { required: true, message: '请输入词条标题', trigger: 'blur' },
+                            { min: 5, max: 100, message: '标题长度应在 5 到 100 个字符之间', trigger: 'blur' }
+                        ],
+                        category: [
+                            { required: true, message: '请选择词条分类', trigger: 'change' }
+                        ],
+                        summary: [
+                            { required: true, message: '请输入词条摘要', trigger: 'blur' },
+                            { min: 10, max: 200, message: '摘要长度应在 10 到 200 个字符之间', trigger: 'blur' }
+                        ],
+                        content: [
+                            { required: true, message: '请输入词条内容', trigger: 'blur' },
+                            { min: 50, message: '内容不能少于 50 个字符', trigger: 'blur' }
+                        ]
+                    },
+                    
+                    // 编辑器实例
+                    editor: null
+                }
+            },
+            mounted() {
+                // 初始化富文本编辑器
+                this.initEditor();
+            },
+            methods: {
+                // 初始化编辑器
+                initEditor() {
+                    this.editor = new Quill('#editor', {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'color': [] }, { 'background': [] }],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                                ['link', 'image'],
+                                ['clean']
+                            ]
+                        },
+                        placeholder: '请输入词条详细内容...'
+                    });
+                    
+                    // 设置初始内容
+                    this.editor.root.innerHTML = this.entryForm.content;
+                    
+                    // 监听编辑器内容变化，同步到表单
+                    this.editor.on('text-change', () => {
+                        this.entryForm.content = this.editor.root.innerHTML;
+                    });
+                },
+                
+                // 标签相关方法
+                handleClose(tag) {
+                    this.entryForm.tags = this.entryForm.tags.filter(item => item !== tag);
+                },
+                
+                handleInputConfirm() {
+                    if (this.inputTag && this.entryForm.tags.length < 5) {
+                        if (!this.entryForm.tags.includes(this.inputTag) && this.inputTag.length <= 10) {
+                            this.entryForm.tags.push(this.inputTag);
+                            this.inputTag = '';
+                        } else if (this.entryForm.tags.includes(this.inputTag)) {
+                            this.$message.warning('该标签已存在！');
+                        } else {
+                            this.$message.warning('标签长度不能超过10个字符！');
+                        }
+                    } else if (this.entryForm.tags.length >= 5) {
+                        this.$message.warning('最多只能添加5个标签！');
+                    }
+                },
+                
+                // 图片上传相关方法
+                handleRemove(file, fileList) {
+                    console.log(file, fileList);
+                    this.entryForm.coverImage = '';
+                },
+                
+                handlePictureCardPreview(file) {
+                    this.dialogImageUrl = file.url;
+                    this.dialogVisible = true;
+                },
+                
+                handleCoverChange(file, fileList) {
+                    // 在实际应用中，这里会上传文件到服务器
+                    // 这里只是模拟，使用base64作为图片路径
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.entryForm.coverImage = e.target.result;
+                    };
+                    reader.readAsDataURL(file.raw);
+                },
+                
+                beforeUpload(file) {
+                    const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
+                    const isLt2M = file.size / 1024 / 1024 < 2;
+
+                    if (!isJPG) {
+                        this.$message.error('上传图片只能是 JPG/PNG 格式!');
+                    }
+                    if (!isLt2M) {
+                        this.$message.error('上传图片大小不能超过 2MB!');
+                    }
+                    return isJPG && isLt2M;
+                },
+                
+                // 表单提交相关方法
+                submitForm(formName) {
+                    this.$refs[formName].validate((valid) => {
+                        if (valid) {
+                            // 在实际应用中，这里会提交表单数据到服务器
+                            console.log('表单数据:', this.entryForm);
+                            this.$message.success('词条修改成功！');
+                            // 更新修改时间
+                            this.updateTime = new Date().toLocaleString();
+                        } else {
+                            console.log('表单验证失败');
+                            return false;
+                        }
+                    });
+                },
+                
+                resetForm(formName) {
+                    this.$refs[formName].resetFields();
+                    // 恢复编辑器内容
+                    this.editor.root.innerHTML = this.entryForm.content;
+                },
+                
+                saveDraft() {
+                    // 在实际应用中，这里会保存草稿到服务器
+                    this.$message.success('草稿保存成功！');
+                },
+                
+                // 删除相关方法
+                confirmDelete() {
+                    this.deleteDialogVisible = true;
+                },
+                
+                deleteEntry() {
+                    // 在实际应用中，这里会发送删除请求到服务器
+                    console.log('删除词条:', this.entryId);
+                    this.$message.success('词条删除成功！');
+                    this.deleteDialogVisible = false;
+                    // 模拟删除后返回列表页
+                    setTimeout(() => {
+                        this.backToList();
+                    }, 1000);
+                },
+                
+                // 历史版本相关方法
+                showHistory() {
+                    this.historyDialogVisible = true;
+                },
+                
+                handleCloseHistory() {
+                    this.historyDialogVisible = false;
+                },
+                
+                previewHistory(version) {
+                    this.$message.info(`预览版本 ${version.version}`);
+                },
+                
+                restoreHistory(version) {
+                    this.$confirm(`确定要恢复到版本 ${version.version} 吗？当前未保存的修改将会丢失。`, '恢复版本', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        this.$message.success(`已恢复到版本 ${version.version}`);
+                        this.historyDialogVisible = false;
+                    }).catch(() => {
+                        // 取消恢复
+                    });
+                },
+                
+                // 导航方法
+                backToList() {
+                    console.log('返回列表');
+                    alert('返回列表页');
+                },
+                
+                backToDetail() {
+                    console.log('返回详情页');
+                    alert('返回详情页');
+                }
+            }
+        });
+        
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度贴吧 - 静态预览</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <script src="https://unpkg.com/element-plus"></script>
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --secondary-color: #f5f5f5;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --border-radius: 4px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-color);
+            background-color: #f0f2f5;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* 导航栏 */
+        .navbar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+        
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-link:hover {
+            opacity: 0.8;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: #ff6b6b;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 1px solid white;
+        }
+        
+        /* 主要内容 */
+        .main-content {
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 200px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 70% 28%;
+            gap: 2%;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-title a {
+            font-size: 14px;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* 热门贴吧列表 */
+        .tieba-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .tieba-item {
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .tieba-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .tieba-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 24px;
+            overflow: hidden;
+        }
+        
+        .tieba-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .tieba-stats {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        /* 帖子列表 */
+        .post-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .post-item {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            transition: all 0.3s;
+        }
+        
+        .post-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        
+        .post-content {
+            color: #666;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .post-stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        /* 侧边栏 */
+        .sidebar .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        
+        .user-card {
+            text-align: center;
+        }
+        
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary-color);
+            font-size: 32px;
+        }
+        
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-actions {}
+        
+        /* 页脚 */
+        .footer {
+            background-color: var(--secondary-color);
+            padding: 40px 0;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .footer-link {
+            color: #666;
+            text-decoration: none;
+        }
+        
+        .footer-info {
+            color: #999;
+            font-size: 14px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .banner {
+                height: 150px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 导航栏 -->
+        <nav class="navbar">
+            <div class="container">
+                <a href="#" class="logo">百度贴吧</a>
+                <div class="nav-links">
+                    <a href="#" class="nav-link">首页</a>
+                    <a href="#" class="nav-link">发现</a>
+                    <a href="#" class="nav-link">关注</a>
+                    <a href="#" class="nav-link">消息</a>
+                </div>
+                <div class="user-actions">
+                    <a href="#" class="btn btn-secondary">登录</a>
+                    <a href="#" class="btn btn-primary">注册</a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- 主要内容 -->
+        <div class="container main-content">
+            <!-- 轮播图 -->
+            <div class="banner">百度贴吧 - 全球最大的中文社区</div>
+            
+            <div class="content-grid">
+                <!-- 左侧内容区 -->
+                <div class="main-area">
+                    <!-- 热门贴吧 -->
+                    <div class="card">
+                        <div class="card-title">
+                            热门贴吧
+                            <a href="#">查看更多</a>
+                        </div>
+                        <div class="tieba-list">
+                            <div class="tieba-item" v-for="tieba in hotTiebas" :key="tieba.id">
+                                <div class="tieba-avatar">{{ tieba.name.charAt(0) }}</div>
+                                <div class="tieba-name">{{ tieba.name }}</div>
+                                <div class="tieba-stats">{{ tieba.memberCount }}万吧友</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 热门帖子 -->
+                    <div class="card">
+                        <div class="card-title">
+                            热门帖子
+                            <a href="#">查看更多</a>
+                        </div>
+                        <div class="post-list">
+                            <div class="post-item" v-for="post in hotPosts" :key="post.id">
+                                <a href="#" class="post-title">{{ post.title }}</a>
+                                <div class="post-content">{{ post.content }}</div>
+                                <div class="post-meta">
+                                    <div>
+                                        <span>{{ post.author }}</span>
+                                        <span>· {{ post.tiebaName }}</span>
+                                    </div>
+                                    <div class="post-stats">
+                                        <span>{{ post.viewCount }} 浏览</span>
+                                        <span>{{ post.commentCount }} 评论</span>
+                                        <span>{{ post.likeCount }} 赞</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右侧边栏 -->
+                <div class="sidebar">
+                    <!-- 用户卡片 -->
+                    <div class="card user-card">
+                        <div class="user-avatar">U</div>
+                        <div class="user-name">游客</div>
+                        <div class="user-actions">
+                            <a href="#" class="btn btn-secondary">登录体验更多功能</a>
+                        </div>
+                    </div>
+                    
+                    <!-- 推荐关注 -->
+                    <div class="card">
+                        <div class="card-title">推荐关注</div>
+                        <div class="tieba-list">
+                            <div class="tieba-item" v-for="tieba in recommendTiebass" :key="tieba.id">
+                                <div class="tieba-avatar">{{ tieba.name.charAt(0) }}</div>
+                                <div class="tieba-name">{{ tieba.name }}</div>
+                                <div class="tieba-stats">{{ tieba.memberCount }}万吧友</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 最新活动 -->
+                    <div class="card">
+                        <div class="card-title">最新活动</div>
+                        <div style="padding: 20px; background-color: #f5f5f5; border-radius: 4px; text-align: center; color: #666;">
+                            贴吧嘉年华活动即将开始，敬请期待！
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-links">
+                    <a href="#" class="footer-link">关于贴吧</a>
+                    <a href="#" class="footer-link">联系我们</a>
+                    <a href="#" class="footer-link">使用帮助</a>
+                    <a href="#" class="footer-link">意见反馈</a>
+                </div>
+                <div class="footer-info">
+                    © 2023 百度贴吧 版权所有
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    hotTiebas: [
+                        { id: 1, name: '热门电影吧', memberCount: 234 },
+                        { id: 2, name: '游戏玩家吧', memberCount: 189 },
+                        { id: 3, name: '旅行吧', memberCount: 156 },
+                        { id: 4, name: '美食吧', memberCount: 142 },
+                        { id: 5, name: '科技吧', memberCount: 128 },
+                        { id: 6, name: '健身吧', memberCount: 98 }
+                    ],
+                    recommendTiebass: [
+                        { id: 7, name: '摄影吧', memberCount: 87 },
+                        { id: 8, name: '读书吧', memberCount: 76 },
+                        { id: 9, name: '音乐吧', memberCount: 65 }
+                    ],
+                    hotPosts: [
+                        {
+                            id: 1,
+                            title: '分享一下最近看过的好电影',
+                            content: '最近看了几部不错的电影，特别推荐《流浪地球2》，特效震撼，剧情也很感人。还有《独行月球》也很有意思，沈腾的表演很到位...',
+                            author: '电影爱好者',
+                            tiebaName: '热门电影吧',
+                            viewCount: 2341,
+                            commentCount: 156,
+                            likeCount: 432
+                        },
+                        {
+                            id: 2,
+                            title: '原神4.1版本新内容讨论',
+                            content: '刚更新了4.1版本，新角色看起来很强啊，而且新的剧情任务也很精彩。大家都抽到新角色了吗？感觉强度如何？',
+                            author: '原神玩家',
+                            tiebaName: '游戏玩家吧',
+                            viewCount: 5678,
+                            commentCount: 789,
+                            likeCount: 1234
+                        },
+                        {
+                            id: 3,
+                            title: '求推荐国内小众但美丽的旅行地',
+                            content: '想去一些人不太多但风景优美的地方旅行，大家有什么好的推荐吗？最好是那种能放松心情，远离城市喧嚣的地方。',
+                            author: '旅行达人',
+                            tiebaName: '旅行吧',
+                            viewCount: 3456,
+                            commentCount: 234,
+                            likeCount: 567
+                        },
+                        {
+                            id: 4,
+                            title: '自制奶茶的秘方分享',
+                            content: '在家研究了很久，终于做出了媲美奶茶店的自制奶茶！今天分享给大家详细的制作步骤和材料比例，简单易学...',
+                            author: '奶茶控',
+                            tiebaName: '美食吧',
+                            viewCount: 4567,
+                            commentCount: 345,
+                            likeCount: 890
+                        }
+                    ]
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

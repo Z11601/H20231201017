@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百度贴吧 - 词条列表</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/element-plus@2.3.8/dist/index.full.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: #333;
+        }
+        .content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+        }
+        .category-nav {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ebeef5;
+        }
+        .entry-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #ebeef5;
+            transition: background-color 0.3s;
+        }
+        .entry-item:hover {
+            background-color: #f7f8fa;
+        }
+        .entry-item:last-child {
+            border-bottom: none;
+        }
+        .entry-title {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #303133;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .entry-title:hover {
+            color: #409eff;
+        }
+        .entry-info {
+            font-size: 14px;
+            color: #909399;
+            display: flex;
+            gap: 20px;
+        }
+        .entry-desc {
+            margin-top: 8px;
+            color: #606266;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        .pagination {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #909399;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 头部 -->
+            <div class="header">
+                <h1>百度贴吧 - 词条列表</h1>
+                <div class="header-actions">
+                    <el-button type="primary" @click="createEntry">创建新词条</el-button>
+                </div>
+            </div>
+            
+            <!-- 搜索和分类 -->
+            <div class="content">
+                <div class="search-box">
+                    <el-input v-model="searchKeyword" placeholder="搜索词条" style="width: 300px;">
+                        <template #append>
+                            <el-button @click="search">搜索</el-button>
+                        </template>
+                    </el-input>
+                    <el-select v-model="category" placeholder="选择分类" style="width: 150px;">
+                        <el-option label="全部" value=""></el-option>
+                        <el-option label="科技" value="tech"></el-option>
+                        <el-option label="娱乐" value="entertainment"></el-option>
+                        <el-option label="体育" value="sports"></el-option>
+                        <el-option label="教育" value="education"></el-option>
+                        <el-option label="生活" value="lifestyle"></el-option>
+                    </el-select>
+                </div>
+                
+                <!-- 分类导航 -->
+                <div class="category-nav">
+                    <el-tabs v-model="activeTab">
+                        <el-tab-pane label="全部" name="all"></el-tab-pane>
+                        <el-tab-pane label="热门" name="hot"></el-tab-pane>
+                        <el-tab-pane label="最新" name="latest"></el-tab-pane>
+                        <el-tab-pane label="精华" name="featured"></el-tab-pane>
+                    </el-tabs>
+                </div>
+                
+                <!-- 词条列表 -->
+                <div class="entry-list">
+                    <div class="entry-item" v-for="entry in entries" :key="entry.id" @click="viewDetail(entry.id)">
+                        <div class="entry-title">{{ entry.title }}</div>
+                        <div class="entry-info">
+                            <span>{{ entry.category }}</span>
+                            <span>{{ formatDate(entry.createTime) }}</span>
+                            <span>{{ entry.viewCount }} 次浏览</span>
+                            <span>{{ entry.commentCount }} 条评论</span>
+                        </div>
+                        <div class="entry-desc">{{ entry.description }}</div>
+                    </div>
+                </div>
+                
+                <!-- 分页 -->
+                <div class="pagination">
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        v-model:page-size="pageSize"
+                        :page-sizes="[10, 20, 50, 100]"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="totalEntries"
+                        @size-change="handleSizeChange"
+                        @current-change="handleCurrentChange"
+                    />
+                </div>
+            </div>
+            
+            <!-- 页脚 -->
+            <div class="footer">
+                <p>© 2023 百度贴吧 - 词条管理系统</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    searchKeyword: '',
+                    category: '',
+                    activeTab: 'all',
+                    currentPage: 1,
+                    pageSize: 10,
+                    totalEntries: 50,
+                    entries: [
+                        {
+                            id: 1,
+                            title: "Vue 3 新特性详解",
+                            category: "科技",
+                            description: "Vue 3 带来了许多激动人心的新特性，包括Composition API、Teleport、Fragments等，本文将详细介绍这些特性的使用方法和应用场景。",
+                            createTime: "2023-06-15 10:30:00",
+                            viewCount: 12453,
+                            commentCount: 326
+                        },
+                        {
+                            id: 2,
+                            title: "世界杯足球赛历史回顾",
+                            category: "体育",
+                            description: "从1930年第一届世界杯到现在，世界杯足球赛已经走过了90多年的历程。本文回顾历届世界杯的精彩瞬间和经典比赛。",
+                            createTime: "2023-06-14 15:45:00",
+                            viewCount: 8752,
+                            commentCount: 218
+                        },
+                        {
+                            id: 3,
+                            title: "健康饮食的十个基本原则",
+                            category: "生活",
+                            description: "健康的饮食习惯对我们的身体至关重要。本文介绍十个科学的饮食原则，帮助你建立健康的生活方式。",
+                            createTime: "2023-06-13 09:20:00",
+                            viewCount: 6541,
+                            commentCount: 157
+                        },
+                        {
+                            id: 4,
+                            title: "最新电影《流浪地球2》观后感",
+                            category: "娱乐",
+                            description: "《流浪地球2》作为中国科幻电影的又一力作，引发了广泛关注。本文从多个角度分析这部电影的优缺点。",
+                            createTime: "2023-06-12 18:10:00",
+                            viewCount: 15678,
+                            commentCount: 483
+                        },
+                        {
+                            id: 5,
+                            title: "高考志愿填报指南",
+                            category: "教育",
+                            description: "高考志愿填报是人生的重要选择，本文提供了详细的志愿填报策略和注意事项，帮助考生做出更明智的选择。",
+                            createTime: "2023-06-11 14:30:00",
+                            viewCount: 23456,
+                            commentCount: 752
+                        },
+                        {
+                            id: 6,
+                            title: "人工智能在医疗领域的应用",
+                            category: "科技",
+                            description: "人工智能技术正在深刻改变医疗行业，从诊断辅助到药物研发，AI的应用越来越广泛。本文介绍AI在医疗领域的最新进展。",
+                            createTime: "2023-06-10 11:50:00",
+                            viewCount: 9876,
+                            commentCount: 245
+                        },
+                        {
+                            id: 7,
+                            title: "瑜伽入门：适合初学者的五个体式",
+                            category: "生活",
+                            description: "瑜伽是一种古老的身心锻炼方式，适合各个年龄段的人群。本文介绍五个适合初学者的基础瑜伽体式及其练习方法。",
+                            createTime: "2023-06-09 16:20:00",
+                            viewCount: 7654,
+                            commentCount: 183
+                        },
+                        {
+                            id: 8,
+                            title: "如何有效提高英语口语能力",
+                            category: "教育",
+                            description: "英语口语能力的提升需要正确的方法和持续的练习。本文分享几个实用的技巧，帮助你快速提高英语口语水平。",
+                            createTime: "2023-06-08 13:40:00",
+                            viewCount: 11234,
+                            commentCount: 321
+                        },
+                        {
+                            id: 9,
+                            title: "2023年最值得期待的十款新游戏",
+                            category: "娱乐",
+                            description: "2023年游戏行业将迎来许多备受期待的大作，本文为你盘点最值得关注的十款新游戏及其特色。",
+                            createTime: "2023-06-07 20:15:00",
+                            viewCount: 14321,
+                            commentCount: 567
+                        },
+                        {
+                            id: 10,
+                            title: "篮球技巧教学：如何提高投篮命中率",
+                            category: "体育",
+                            description: "投篮是篮球运动中最基本也最重要的技术之一。本文从姿势、力量控制和心理因素等方面，教你如何提高投篮命中率。",
+                            createTime: "2023-06-06 17:30:00",
+                            viewCount: 8901,
+                            commentCount: 234
+                        }
+                    ]
+                }
+            },
+            methods: {
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('zh-CN');
+                },
+                search() {
+                    // 搜索功能实现
+                    console.log('搜索关键词:', this.searchKeyword);
+                    // 这里可以根据关键词过滤entries数组
+                },
+                viewDetail(id) {
+                    // 在实际应用中，这里会跳转到详情页
+                    console.log('查看词条ID:', id);
+                    // 由于是静态原型，我们只是模拟跳转
+                    // window.location.href = `tieba-entry-detail.html?id=${id}`;
+                    alert(`查看词条ID: ${id}`);
+                },
+                createEntry() {
+                    // 在实际应用中，这里会跳转到创建页面
+                    console.log('创建新词条');
+                    // window.location.href = 'tieba-entry-create.html';
+                    alert('创建新词条');
+                },
+                handleSizeChange(size) {
+                    this.pageSize = size;
+                    console.log('每页条数变化:', size);
+                },
+                handleCurrentChange(current) {
+                    this.currentPage = current;
+                    console.log('当前页码变化:', current);
+                }
+            }
+        });
+        
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>
